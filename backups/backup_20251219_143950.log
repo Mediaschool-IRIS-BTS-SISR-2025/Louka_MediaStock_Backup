@@ -1,0 +1,16 @@
+[0;32m[2025-12-19 14:39:50][0m ===== Début backup MediaStock =====
+[0;32m[2025-12-19 14:39:50][0m Vérification de Docker...
+[0;32m[2025-12-19 14:39:50][0m Prérequis OK
+[0;32m[2025-12-19 14:39:50][0m 🔹 Backup de MySQL
+[0;32m[2025-12-19 14:39:51][0m ✔ Dump MySQL créé
+[0;32m[2025-12-19 14:39:51][0m 🔹 Backup des volumes MySQL
+[0;32m[2025-12-19 14:39:51][0m ✔ Volume MySQL sauvegardé
+[0;32m[2025-12-19 14:39:51][0m 🔹 Backup du code source
+[0;32m[2025-12-19 14:39:52][0m ✔ Code source archivé
+[0;32m[2025-12-19 14:39:52][0m 🔹 Backup des fichiers de configuration
+[0;32m[2025-12-19 14:39:52][0m 📦 Création de l'archive finale
+[0;32m[2025-12-19 14:39:53][0m ✔ Archive + checksum OK
+[0;32m[2025-12-19 14:39:53][0m 🧹 Suppression des backups > 7 jours
+[0;32m[2025-12-19 14:39:53][0m ✔ Anciennes sauvegardes effacées
+[0;32m[2025-12-19 14:39:53][0m ===== Backup terminé 🎉 =====
+[0;32m[2025-12-19 14:39:53][0m Archive : /mnt/c/Users/laven/OneDrive - MEDIASCHOOL/Cybersécurité/Mediastock BackUp/MediaStock-main/backups/mediastock_backup_20251219_143950.tar.gz
