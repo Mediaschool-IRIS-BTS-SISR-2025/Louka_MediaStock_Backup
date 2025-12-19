@@ -57,57 +57,67 @@ BACKUP_PATH="./backups"
 RETENTION_DAYS=7
 ````
 
-3.3 Création du répertoire de backup
+### 3.3 Création du répertoire de backup
 Avant de lancer le script :
 
-bash
-Copier le code
+````bash
 mkdir -p ./backups
-4. Fonctionnement du Script
-4.1 Étapes du backup
+````
+
+## 4. Fonctionnement du Script
+
+### 4.1 Étapes du backup
 Vérification des prérequis : Docker et conteneur MySQL actifs
 
 Backup de la base de données MySQL :
 
-bash
-Copier le code
+````bash
 docker exec "$DB_CONTAINER" mysqldump -u"$DB_USER" -p"$DB_PASS" --all-databases | gzip > "$BACKUP_PATH/db/mysql_all.sql.gz"
+````
+
 Backup des volumes Docker :
 
-bash
-Copier le code
+````bash
 docker run --rm -v mediastock_mysql-data:/data -v "$BACKUP_PATH/volumes:/backup" alpine tar czf /backup/mysql-data.tar.gz -C /data .
+````
+
 Backup des fichiers du projet :
 
-bash
-Copier le code
+````bash
 rsync -av --exclude backups --exclude .git "$PROJECT_ROOT/" "$BACKUP_PATH/app/"
+````
+
 Backup des fichiers de configuration :
 
-bash
-Copier le code
+````bash
 cp .env docker-compose.yml docker-compose.production.yml "$BACKUP_PATH/config/"
+````
+
 Création de l’archive finale :
 
-bash
-Copier le code
+````bash
 cd "$BACKUP_ROOT"
 tar czf "$BACKUP_NAME.tar.gz" "$BACKUP_NAME"
 sha256sum "$BACKUP_NAME.tar.gz" > "$BACKUP_NAME.sha256"
+````
+
 Nettoyage des anciens backups :
 
-bash
+````bash
 Copier le code
 find "$BACKUP_ROOT" -name "mediastock_backup_*.tar.gz" -mtime +$RETENTION_DAYS -delete
-5. Utilisation
-5.1 Lancer le backup manuellement
+````
+
+## 5. Utilisation
+### 5.1 Lancer le backup manuellement
 Ouvre Git Bash et exécute :
 
-bash
-Copier le code
+````bash
 cd /c/Users/<utilisateur>/OneDrive\ -\ MEDIASCHOOL/Cybersécurité/Mediastock\ BackUp/MediaStock-main
 ./backup.sh
-5.2 Planifier un backup automatique (Windows)
+````
+
+### 5.2 Planifier un backup automatique (Windows)
 Ouvrir le Planificateur de tâches (taskschd.msc)
 
 Créer une nouvelle tâche :
@@ -120,11 +130,10 @@ Programme : C:\Program Files\Git\bin\bash.exe
 
 Arguments : -c "cd /c/Users/<utilisateur>/OneDrive - MEDIASCHOOL/Cybersécurité/Mediastock BackUp/MediaStock-main && ./backup.sh"
 
-6. Structure des Backups
+## 6. Structure des Backups
 Chaque backup est organisé comme suit :
 
-bash
-Copier le code
+````bash
 mediastock_backup_YYYYMMDD_HHMMSS/
 ├── db/
 │   └── mysql_all.sql.gz         # Backup de la base MySQL
@@ -138,40 +147,52 @@ mediastock_backup_YYYYMMDD_HHMMSS/
 │   └── docker-compose.production.yml
 └── mediastock_backup_YYYYMMDD_HHMMSS.tar.gz  # Archive finale
 └── mediastock_backup_YYYYMMDD_HHMMSS.sha256  # Checksum
-7. Restauration des Données
-7.1 Restaurer la base de données
-bash
-Copier le code
+````
+
+## 7. Restauration des Données
+### 7.1 Restaurer la base de données
+````bash
 tar -xzf "$BACKUP_FILE" -C /tmp/
 docker exec -i "$DB_CONTAINER" mysql -u"$DB_USER" -p"$DB_PASS" < /tmp/$(basename "$BACKUP_FILE" .tar.gz)/db/mysql_all.sql
-7.2 Restaurer les volumes Docker
-bash
-Copier le code
+````
+
+### 7.2 Restaurer les volumes Docker
+````bash
 tar -xzf /tmp/$(basename "$BACKUP_FILE" .tar.gz)/volumes/mysql-data.tar.gz -C /tmp/mysql_data
 docker run --rm -v mediastock_mysql-data:/volume_data -v /tmp/mysql_data:/backup alpine sh -c "rm -rf /volume_data/* && tar -xzf /backup/mysql-data.tar.gz -C /volume_data"
-7.3 Restaurer les fichiers du projet
-bash
-Copier le code
-rsync -a --delete /tmp/$(basename "$BACKUP_FILE" .tar.gz)/app/ "$PROJECT_ROOT/"
-7.4 Restaurer les fichiers de configuration
-bash
-Copier le code
-cp /tmp/$(basename "$BACKUP_FILE" .tar.gz)/config/* "$PROJECT_ROOT/config/"
-8. Gestion des Erreurs
-Erreur	Cause	Solution
-Docker n’est pas en cours d’exécution	Docker Desktop arrêté	Démarrer Docker Desktop
-Conteneur MySQL non lancé	Conteneur MySQL absent	Lancer docker compose up -d
-Volume Docker manquant	Volume mediastock_mysql-data inexistant	Vérifier avec docker volume ls
-Fichier manquant dans backup	Permissions ou chemin incorrect	Vérifier $BACKUP_PATH et les droits d’écriture
+````
 
-9. Vérification de l’intégrité
+### 7.3 Restaurer les fichiers du projet
+````bash
+rsync -a --delete /tmp/$(basename "$BACKUP_FILE" .tar.gz)/app/ "$PROJECT_ROOT/"
+````
+
+### 7.4 Restaurer les fichiers de configuration
+````bash
+cp /tmp/$(basename "$BACKUP_FILE" .tar.gz)/config/* "$PROJECT_ROOT/config/"
+````
+
+## 8. Gestion des Erreurs
+
+| Erreur | Cause | Solution |
+|--------|-------|---------|
+| Docker n’est pas en cours d’exécution | Docker Desktop arrêté | Démarrer Docker Desktop |
+| Conteneur MySQL non lancé | Conteneur MySQL absent | Lancer `docker compose up -d` |
+| Volume Docker manquant | Volume `mediastock_mysql-data` inexistant | Vérifier avec `docker volume ls` |
+| Fichier manquant dans le backup | Permissions ou chemin incorrect | Vérifier `$BACKUP_PATH` et les droits d’écriture |
+| Accès refusé MySQL | Mot de passe incorrect ou utilisateur non existant | Vérifier `DB_USER` et `DB_PASS` dans le script |
+| Dossier de backup introuvable | Répertoire `./backups` manquant | Créer le dossier avec `mkdir -p ./backups` |
+
+
+## 9. Vérification de l’intégrité
 Pour vérifier qu’un backup est valide, compare le checksum SHA256 :
 
-bash
-Copier le code
+````bash
 sha256sum mediastock_backup_YYYYMMDD_HHMMSS.tar.gz
 cat mediastock_backup_YYYYMMDD_HHMMSS.sha256
-10. Bonnes pratiques
+````
+
+## 10. Bonnes pratiques
 Tester régulièrement les backups avec la restauration
 
 Stocker les backups sur un disque externe ou un cloud
